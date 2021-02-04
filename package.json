@@ -1,0 +1,34 @@
+{
+  "name": "guardian-angel",
+  "version": "1.0.0",
+  "description": "A node library and Web UI for configuring squid and e2guardian",
+  "main": "app.js",
+  "scripts": {
+    "test:unit": "nyc --report-dir ./reports/coverage/unit _mocha --reqporter=mocha-multi-reporters --reporter-options configFile=./test/unit/mocha-config.json --recursive ./test/unit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justinschw/guardian-angel.git"
+  },
+  "keywords": [
+    "filter",
+    "webui",
+    "squid",
+    "e2guardian",
+    "proxy"
+  ],
+  "author": "Justin Schwartzbeck (justinmschw@gmail.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/justinschw/guardian-angel/issues"
+  },
+  "homepage": "https://github.com/justinschw/guardian-angel#readme",
+  "dependencies": {
+    "joi": "^17.3.0"
+  },
+  "devDependencies": {
+    "chai": "4.2.0",
+    "nyc": "15.1.0",
+    "sinon": "9.2.3"
+  }
+}

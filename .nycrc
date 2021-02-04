@@ -1,0 +1,19 @@
+{
+  "require": [],
+  "exclude": [
+    "node_modules/**",
+    "reports/**",
+    "test/**"
+  ],
+  "all": true,
+  "check-coverage": false,
+  "lines": 90,
+  "statements": 80,
+  "functions": 80,
+  "branches": 80,
+  "reporter": [
+    "lcov",
+    "cobertura",
+    "text"
+  ]
+}
