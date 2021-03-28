@@ -1,3 +1,6 @@
 .idea
+.nyc_output
+coverage
+reports
 node_modules
 package-lock.json

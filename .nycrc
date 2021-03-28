@@ -1,6 +1,7 @@
 {
   "require": [],
   "exclude": [
+    "coverage/**",
     "node_modules/**",
     "reports/**",
     "test/**"
