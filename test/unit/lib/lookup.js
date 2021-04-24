@@ -66,11 +66,10 @@ describe('Lookup', function() {
             await lookup.cleanup();
             await lookup.close();
         });
-        /*it('valid', async function() {
+        it('valid', async function() {
             await lookup.loadDomainsFile(`${process.env.PWD}/test/unit/data/domains`, 'myCategory');
-            expect(Object.keys(lookup.entries).length).eql(3);
-            const val = lookup.lookupHostName('domain1.com');
+            const val = await lookup.lookupHostName('domain1.com', 'myCategory');
             expect(val).to.not.be.null;
-        });*/
+        });
     });
 });
