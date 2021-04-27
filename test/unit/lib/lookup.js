@@ -5,22 +5,22 @@ const expect = require('chai').expect;
 
 describe('Lookup', function() {
     let lookup = new Lookup({aclDatabaseFile: '/tmp/acls.db'});
+    before(async function() {
+        await lookup.init();
+    });
+    after(async function() {
+        await lookup.cleanup();
+        await lookup.close();
+    });
     describe('addHostName', function() {
-        beforeEach(async function() {
-            await lookup.init();
-        });
-        afterEach(async function() {
-            await lookup.cleanup();
-            await lookup.close();
-        });
         it('valid', async function() {
             await lookup.addHostName('subdomain.mydomain.com', 'myCategory');
             const result = await lookup.lookupHostName('subdomain.mydomain.com', 'myCategory');
             expect(result).to.not.be.undefined;
         });
         it('duplicate', async function() {
-            lookup.addHostName('subdomain.mydomain.com', 'myCategory');
-            lookup.addHostName('subdomain.mydomain.com', 'myCategory');
+            await lookup.addHostName('subdomain.mydomain.com', 'myCategory');
+            await lookup.addHostName('subdomain.mydomain.com', 'myCategory');
             const result = await lookup.lookupHostName('subdomain.mydomain.com', 'myCategory');
             expect(result).to.not.be.undefined;
         });
@@ -44,13 +44,6 @@ describe('Lookup', function() {
         });
     });
     describe('lookupHostName', function() {
-        beforeEach(async function() {
-            await lookup.init();
-        });
-        afterEach(async function() {
-            await lookup.cleanup();
-            await lookup.close();
-        });
         it('subdomain', async function() {
             await lookup.addHostName('mydomain.com', 'myCategory');
             const entry = await lookup.lookupHostName('subdomain.mydomain.com', 'myCategory');
@@ -58,14 +51,6 @@ describe('Lookup', function() {
         });
     });
     describe('loadShallaDomains', function() {
-        beforeEach(async function() {
-            await lookup.init();
-        });
-
-        afterEach(async function() {
-            await lookup.cleanup();
-            await lookup.close();
-        });
         it('valid', async function() {
             await lookup.loadDomainsFile(`${process.env.PWD}/test/unit/data/domains`, 'myCategory');
             const val = await lookup.lookupHostName('domain1.com', 'myCategory');
