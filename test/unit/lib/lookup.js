@@ -50,11 +50,18 @@ describe('Lookup', function() {
             expect(entry.categoryText).eql('myCategory');
         });
     });
-    describe('loadShallaDomains', function() {
+    describe('loadDomainsFile', function() {
         it('valid', async function() {
-            await lookup.loadDomainsFile(`${process.env.PWD}/test/unit/data/domains`, 'myCategory');
+            await lookup.loadDomainsFile(`${process.env.PWD}/test/unit/data/category1/domains`, 'myCategory');
             const val = await lookup.lookupHostName('domain1.com', 'myCategory');
             expect(val).to.not.be.null;
         });
     });
+    describe('loadDomainsDirectory', function() {
+        it('valid', async function() {
+            await lookup.loadDomainsDirectory(`${process.env.PWD}/test/unit/data/`);
+            const val = await lookup.lookupHostName('anotherdomain.com', 'category2/subcategory');
+            expect(val).to.not.be.null;
+        })
+    })
 });

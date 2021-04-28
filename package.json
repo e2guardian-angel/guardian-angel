@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/justinschw/guardian-angel#readme",
   "dependencies": {
+    "findit": "^2.0.0",
     "joi": "^17.3.0",
     "nconf": "^0.11.2",
     "redis": "^3.1.0",
