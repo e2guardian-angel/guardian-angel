@@ -24,12 +24,15 @@
   },
   "homepage": "https://github.com/justinschw/guardian-angel#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "findit": "^2.0.0",
+    "ioredis": "^4.27.1",
     "joi": "^17.3.0",
     "nconf": "^0.11.2",
     "redis": "^3.1.0",
     "sqlite": "^4.0.21",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.0.2",
+    "swig": "^1.4.2"
   },
   "devDependencies": {
     "chai": "4.2.0",
