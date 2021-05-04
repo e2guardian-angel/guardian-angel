@@ -1,5 +1,6 @@
 'use strict'
 const express = require('express');
+const bodyParser = require('body-parser')
 const router = require('./routes');
 const lookup = require('./routes/lookup/lookup');
 const Config = require('./lib/config');
@@ -13,6 +14,7 @@ const config = new Config(data);
 lookup.init(config);
 
 let app = express();
+app.use(bodyParser.json());
 app.use(router);
 
 app.listen(config.httpPort, function(err) {

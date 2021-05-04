@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/justinschw/guardian-angel#readme",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "findit": "^2.0.0",
     "ioredis": "^4.27.1",
@@ -32,7 +33,7 @@
     "redis": "^3.1.0",
     "sqlite": "^4.0.21",
     "sqlite3": "^5.0.2",
-    "swig": "^1.4.2"
+    "swig": "^0.14.0"
   },
   "devDependencies": {
     "chai": "4.2.0",

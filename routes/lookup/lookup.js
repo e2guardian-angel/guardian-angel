@@ -31,19 +31,25 @@ const lookupByHostName = function(req, res) {
 const lookupByIp = function(req, res) {
     const ip = req.body.ip;
     const category = req.body.category;
-    redis.get(ip).then(hostName => {
-        lookupDb.lookupHostName(hostName, category).then(result => {
-            if (result) {
-                res.send({
-                    match: true,
-                    result: result
-                });
-            } else {
-                res.send({
-                    match: false
-                });
-            }
-        });
+    reverseCache.get(ip).then(hostName => {
+        if (hostName) {
+            lookupDb.lookupHostName(hostName, category).then(result => {
+                if (result) {
+                    res.send({
+                        match: true,
+                        result: result
+                    });
+                } else {
+                    res.send({
+                        match: false
+                    });
+                }
+            });
+        } else {
+            res.send({
+                match: false
+            });
+        }
     });
 }
 
