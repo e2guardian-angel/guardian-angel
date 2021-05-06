@@ -18,6 +18,11 @@ describe('Lookup', function() {
             const result = await lookup.lookupHostName('subdomain.mydomain.com', 'myCategory');
             expect(result).to.not.be.undefined;
         });
+        it('all', async function() {
+           await lookup.addHostName('subdomain.mydomain.com', 'myCategory');
+           const result = await lookup.lookupHostName('subdomain.mydomain.com', 'any');
+           expect(result).to.not.be.undefined;
+        });
         it('duplicate', async function() {
             await lookup.addHostName('subdomain.mydomain.com', 'myCategory');
             await lookup.addHostName('subdomain.mydomain.com', 'myCategory');

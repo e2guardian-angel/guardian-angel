@@ -16,6 +16,9 @@ describe('config.js', function() {
             organizationalUnit: 'NetworkSecurity',
             commonName: 'guardian-angel',
             email: 'admin@domain.net'
+        },
+        redisConfig: {
+            host: '127.0.0.1'
         }
     }
     beforeEach(function() {
@@ -30,7 +33,8 @@ describe('config.js', function() {
         process.env.CERT_ORGANIZATION = 'BlueStar';
         process.env.CERT_ORGUNIT = 'NetworkSecurity';
         process.env.CERT_CN = 'guardian-angel';
-        process.env.CERT_EMAIL = 'admin@domain.net'
+        process.env.CERT_EMAIL = 'admin@domain.net';
+        process.env.REDIS_HOST = '127.0.0.1';
     })
     describe('validate', function() {
         it('valid env', function() {
