@@ -8,7 +8,7 @@ const nconf = require('nconf');
 const fs = require('fs');
 
 nconf.env();
-const configFile = nconf.get('GUARDIAN_ANGEL_CONF_FILE') || '/opt/guardian/guardian.yaml';
+const configFile = nconf.get('GUARDIAN_ANGEL_CONF_FILE') || '/opt/guardian/guardian.json';
 const data = JSON.parse(fs.readFileSync(configFile));
 const config = new Config(data);
 lookup.init(config);

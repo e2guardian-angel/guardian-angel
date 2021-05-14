@@ -22,6 +22,16 @@ const cacheLocally = function(key, value) {
     }
 }
 
+const recursiveCnameLookup = async function(cname) {
+    try {
+        const next = await reverseCache.get(cname);
+        return (next) ? await recursiveCnameLookup(next) : cname;
+    } catch (err) {
+        console.log('Failure during recursive CNAME lookup');
+        return {match: false};
+    }
+}
+
 const lookupByHostName = function(req, res) {
     const hostName = req.body.hostname;
     const category = req.body.category;
@@ -67,7 +77,7 @@ const lookupByIp = function(req, res) {
     if (typeof(localResult) !== 'undefined') {
         res.send((typeof(localResult) === 'object') ? {match: true, result: localResult} : {match: false});
     } else {
-        reverseCache.get(ip).then(hostName => {
+        recursiveCnameLookup(ip).then(hostName => {
             if (hostName) {
                 lookupDb.lookupHostName(hostName, category).then(result => {
                     if (result) {
@@ -84,10 +94,17 @@ const lookupByIp = function(req, res) {
                     }
                 });
             } else {
-                cacheLocally(`${ip}:${category}`, false);
-                res.send({
-                    match: false
-                });
+                let response = {};
+                // Allow an ip_miss category for IPs that aren't cached
+                // in redis for some reason
+                if (category === 'ip_miss') {
+                    response.match = true;
+                    response.result = {ip: ip, category: 'ip_miss'};
+                } else {
+                    response.match = false;
+                }
+                cacheLocally(`${ip}:${category}`, response.match);
+                res.send(response);
             }
         });
     }
