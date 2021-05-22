@@ -1,8 +1,7 @@
 FROM node:current-alpine3.12
 
 RUN mkdir -p /app \
-  && mkdir -p /opt/guardian \
-  && touch /opt/guardian/acls.db \
+  && mkdir -p /opt/guardian/acl \
   && chown -R node:node /opt/guardian
 
 WORKDIR /app
