@@ -2,12 +2,19 @@
 const LookupDb = require('../../lib/lookup');
 const Redis = require('ioredis');
 const NodeCache = require('node-cache');
+const nconf = require('nconf');
+
+nconf.env('__');
 
 let lookupDb;
 let reverseCache;
 let localCache;
 
 const init = function(config) {
+    const redisPass = nconf.get('REDIS_PASS');
+    if (redisPass) {
+        config.redisConfig.password = redisPass
+    }
     lookupDb = new LookupDb(config);
     lookupDb.init();
     reverseCache = new Redis(config.redisConfig);
