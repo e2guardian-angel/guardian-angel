@@ -2,16 +2,41 @@
 const LookupDb = require('../../lib/lookup');
 const Redis = require('ioredis');
 const NodeCache = require('node-cache');
+const nconf = require('nconf');
+const Controller = require('../../lib/controller');
+
+nconf.env('__');
 
 let lookupDb;
 let reverseCache;
 let localCache;
 
-const init = function(config) {
-    lookupDb = new LookupDb(config);
+const finish = async function() {
+    if (localCache) {
+        await localCache.close();
+    }
+    if (reverseCache) {
+        await reverseCache.close();
+    }
+    if (lookupDb) {
+        await lookupDb.close();
+    }
+}
+
+const init = async function(kubeData) {
+    await finish();
+    lookupDb = new LookupDb(kubeData.config);
     lookupDb.init();
-    reverseCache = new Redis(config.redisConfig);
-    localCache = new NodeCache(config.cacheConfig);
+
+    if (kubeData.config.configured && kubeData.config.redisConfig) {
+        // Make a copy of redisConfig to protect secret data
+        const redisConfig = JSON.parse(JSON.stringify(kubeData.config.redisConfig));
+        if (kubeData.redisPass) {
+            redisConfig.password = kubeData.redisPass;
+        }
+        reverseCache = new Redis(redisConfig);
+        localCache = new NodeCache(kubeData.config.cacheConfig);
+    }
 }
 
 const cacheLocally = function(key, value) {
@@ -33,6 +58,12 @@ const recursiveCnameLookup = async function(cname) {
 }
 
 const lookupByHostName = function(req, res) {
+
+    if (!reverseCache) {
+        res.status(503).send('Redis cache not initialized');
+        return;
+    }
+
     const hostName = req.body.hostname;
     const category = req.body.category;
 
@@ -64,6 +95,12 @@ const lookupByHostName = function(req, res) {
 }
 
 const lookupByIp = function(req, res) {
+
+    if (!reverseCache) {
+        res.status(503).send('Redis cache not initialized');
+        return;
+    }
+
     const ip = req.body.ip;
     const category = req.body.category;
 
