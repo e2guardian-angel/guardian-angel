@@ -3,23 +3,20 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const router = require('./routes');
 const lookup = require('./routes/lookup/lookup');
-const Config = require('./lib/config');
-const nconf = require('nconf');
-const fs = require('fs');
+const Controller = require('./lib/controller');
 
-nconf.env();
-const configFile = nconf.get('GUARDIAN_ANGEL_CONF_FILE') || '/opt/guardian/guardian.json';
-const data = JSON.parse(fs.readFileSync(configFile));
-const config = new Config(data);
-lookup.init(config);
+const controller = new Controller();
 
 let app = express();
 app.use(bodyParser.json());
 app.use(router);
 
-app.listen(config.httpPort, function(err) {
-    if (err) {
-        console.error(err);
-    }
-    console.info(`Server is listening on port ${config.httpPort}`);
-})
+controller.getConfig().then(async config => {
+    await lookup.init(config);
+    app.listen(config.httpPort, function(err) {
+        if (err) {
+            console.error(err);
+        }
+        console.info(`Server is listening on port ${config.httpPort}`);
+    });
+});
