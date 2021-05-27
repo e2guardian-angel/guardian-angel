@@ -5,8 +5,6 @@ const NodeCache = require('node-cache');
 const nconf = require('nconf');
 const Controller = require('../../lib/controller');
 
-const controller = new Controller();
-
 nconf.env('__');
 
 let lookupDb;
@@ -25,19 +23,19 @@ const finish = async function() {
     }
 }
 
-const init = async function(config) {
+const init = async function(kubeData) {
     await finish();
-    lookupDb = new LookupDb(config);
+    lookupDb = new LookupDb(kubeData.config);
     lookupDb.init();
 
-    const redisPass = await controller.getRedisSecret();
-
-    if (config.configured && config.redisConfig) {
-        if (redisPass) {
-            config.redisConfig.password = redisPass
+    if (kubeData.config.configured && kubeData.config.redisConfig) {
+        // Make a copy of redisConfig to protect secret data
+        const redisConfig = JSON.parse(JSON.stringify(kubeData.config.redisConfig));
+        if (kubeData.redisPass) {
+            redisConfig.password = kubeData.redisPass;
         }
-        reverseCache = new Redis(config.redisConfig);
-        localCache = new NodeCache(config.cacheConfig);
+        reverseCache = new Redis(redisConfig);
+        localCache = new NodeCache(kubeData.config.cacheConfig);
     }
 }
 

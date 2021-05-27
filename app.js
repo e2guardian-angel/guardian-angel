@@ -11,12 +11,14 @@ let app = express();
 app.use(bodyParser.json());
 app.use(router);
 
-controller.getConfig().then(async config => {
-    await lookup.init(config);
-    app.listen(config.httpPort, function(err) {
+controller.getKubeData().then(async kubeData => {
+    await lookup.init(kubeData);
+    app.listen(kubeData.config.httpPort, function(err) {
         if (err) {
             console.error(err);
         }
-        console.info(`Server is listening on port ${config.httpPort}`);
+        console.info(`Server is listening on port ${kubeData.config.httpPort}`);
     });
+}).catch(err => {
+    console.error(`Failed to start: ${err.message}`);
 });
