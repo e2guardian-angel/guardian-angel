@@ -34,6 +34,10 @@
               {
                 "mountPath": "/opt/guardian",
                 "name": "guardian-conf-volume"
+              },
+              {
+                "mountPath": "/etc/squid/ssl",
+                "name": "guardian-tls-volume"
               }
             ]
           }, {
@@ -71,7 +75,14 @@
             "name": "guardian-conf-volume",
             "configMap": {
               "name": "guardian-conf",
-              "defaultMode": 420
+              "defaultMode": 640
+            }
+          },
+          {
+            "name": "guardian-tls-volume",
+            "secret": {
+              "name": "guardian-tls",
+              "defaultMode": 640
             }
           }
         ]
