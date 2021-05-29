@@ -13,8 +13,11 @@ describe('/lib/controller', function() {
     describe('deployAll', function() {
         before(async function() {
             try {
+                console.info('Tearing down...');
                 await controller.tearDown();
                 await controller.eraseKubeData();
+                console.info('Waiting until ready...');
+                await controller.pollUntilReady();
             } catch (err) {
                 assert(!err);
             }
@@ -22,8 +25,11 @@ describe('/lib/controller', function() {
         });
         it('default config', async function() {
             try {
+                console.info('Fetching kube data...');
                 await controller.getKubeData();
+                console.info('Deploying all objects...');
                 await controller.deployAll();
+                console.info('Done');
                 // Get all kube deployments and make sure they are as expected
             } catch (err) {
                 assert(!err);
