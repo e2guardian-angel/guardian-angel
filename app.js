@@ -22,3 +22,17 @@ controller.getKubeData().then(async kubeData => {
 }).catch(err => {
     console.error(`Failed to start: ${err.message}`);
 });
+
+function gracefulShutdown() {
+    console.info('Shutting down...');
+    app.close(() => {
+        console.info('guardian-angel exited.');
+    });
+    lookup.finish(() => {
+        console.info('Closed db and redis connections.');
+    });
+}
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGHUP', gracefulShutdown);

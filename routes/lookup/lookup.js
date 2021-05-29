@@ -11,30 +11,41 @@ let lookupDb;
 let reverseCache;
 let localCache;
 
+/*
+ * Just close/open redis; this way we won't have to reinitialize
+ * everything on a reload
+ */
+const openRedis = async function(kubeData) {
+    // Make a copy of redisConfig to protect secret data
+    const redisConfig = JSON.parse(JSON.stringify(kubeData.config.redisConfig));
+    if (kubeData.redisPass) {
+        redisConfig.password = kubeData.redisPass;
+    }
+    reverseCache = new Redis(redisConfig);
+}
+const closeRedis = async function() {
+    if (reverseCache) {
+        await reverseCache.close();
+        reverseCache = null;
+    }
+}
+
 const finish = async function() {
     if (localCache) {
         await localCache.close();
     }
-    if (reverseCache) {
-        await reverseCache.close();
-    }
+    await closeRedis();
     if (lookupDb) {
         await lookupDb.close();
     }
 }
 
 const init = async function(kubeData) {
-    await finish();
     lookupDb = new LookupDb(kubeData.config);
     lookupDb.init();
 
     if (kubeData.config.configured && kubeData.config.redisConfig) {
-        // Make a copy of redisConfig to protect secret data
-        const redisConfig = JSON.parse(JSON.stringify(kubeData.config.redisConfig));
-        if (kubeData.redisPass) {
-            redisConfig.password = kubeData.redisPass;
-        }
-        reverseCache = new Redis(redisConfig);
+        await openRedis(kubeData)
         localCache = new NodeCache(kubeData.config.cacheConfig);
     }
 }
@@ -148,5 +159,8 @@ const lookupByIp = function(req, res) {
 }
 
 module.exports.init = init;
+module.exports.openRedis = openRedis;
+module.exports.closeRedis = closeRedis;
+module.exports.finish = finish;
 module.exports.lookupHostName = lookupByHostName;
 module.exports.lookupByIp = lookupByIp;

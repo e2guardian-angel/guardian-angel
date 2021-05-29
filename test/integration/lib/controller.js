@@ -7,6 +7,7 @@ const controller = new Controller();
 const expect = require('chai').expect;
 const assert = require('chai').assert;
 const fs = require('fs');
+const sandbox = require('sinon').createSandbox();
 
 describe('/lib/controller', function() {
     describe('deployAll', function() {
@@ -17,15 +18,13 @@ describe('/lib/controller', function() {
             } catch (err) {
                 assert(!err);
             }
+            sandbox.stub(lookup, 'openRedis').resolves();
         });
         it('default config', async function() {
             try {
                 await controller.getKubeData();
                 await controller.deployAll();
-                // TODO: mock redis connection
                 // Get all kube deployments and make sure they are as expected
-                // Clean up when done
-                await lookup.finish();
             } catch (err) {
                 assert(!err);
             }
