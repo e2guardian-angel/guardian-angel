@@ -1,21 +1,33 @@
 'use strict';
 
 const Controller = require('../../../lib/controller');
+const Config = require('../../../lib/config');
+const lookup = require('../../../routes/lookup/lookup');
 const controller = new Controller();
 const expect = require('chai').expect;
+const assert = require('chai').assert;
 const fs = require('fs');
 
 describe('/lib/controller', function() {
-    describe('updateGuardianConf', function() {
-        it('valid', async function() {
+    describe('deployAll', function() {
+        before(async function() {
             try {
-                await controller.getConfig();
-                const currentConfig = JSON.parse(fs.readFileSync('/opt/guardian/guardian.json'));
-                await controller.updateGuardianConf(currentConfig);
-                const newConfig = await controller.getConfig()
-                expect(JSON.stringify(currentConfig)).eql(JSON.stringify(newConfig));
+                await controller.tearDown();
+                await controller.eraseKubeData();
             } catch (err) {
-                self.fail(err);
+                assert(!err);
+            }
+        });
+        it('default config', async function() {
+            try {
+                await controller.getKubeData();
+                await controller.deployAll();
+                // TODO: mock redis connection
+                // Get all kube deployments and make sure they are as expected
+                // Clean up when done
+                await lookup.finish();
+            } catch (err) {
+                assert(!err);
             }
         });
     });

@@ -74,15 +74,13 @@
           {
             "name": "guardian-conf-volume",
             "configMap": {
-              "name": "guardian-conf",
-              "defaultMode": 640
+              "name": "guardian-conf"
             }
           },
           {
             "name": "guardian-tls-volume",
             "secret": {
-              "name": "guardian-tls",
-              "defaultMode": 640
+              "name": "guardian-tls"
             }
           }
         ]

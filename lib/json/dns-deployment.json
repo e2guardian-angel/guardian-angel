@@ -54,8 +54,7 @@
           {
             "name": "guardian-conf-volume",
             "configMap": {
-              "name": "guardian-conf",
-              "defaultMode": 640
+              "name": "guardian-conf"
             }
           }
         ]
