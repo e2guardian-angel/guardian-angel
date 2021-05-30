@@ -19,7 +19,7 @@ describe('/lib/controller', function() {
                 console.info('Waiting until ready...');
                 await controller.pollUntilReady();
             } catch (err) {
-                assert(!err);
+                self.fail(`Test failed: ${err.message}`);
             }
             sandbox.stub(lookup, 'openRedis').resolves();
         });
@@ -30,9 +30,28 @@ describe('/lib/controller', function() {
                 console.info('Deploying all objects...');
                 await controller.deployAll();
                 console.info('Done');
-                // Get all kube deployments and make sure they are as expected
             } catch (err) {
-                assert(!err);
+                console.error(`Failed test: ${err.message}`);
+                expect(err).to.be.null;
+            }
+            // Get all kube deployments and make sure they are as expected
+            const pods = await controller.kubeGet(controller.paths.kube.pods);
+            pods.body.items.forEach(pod => {
+                if (pod.metadata.name.startsWith('webfilter')) {
+                    // check to make sure that transocks is not deployed
+                    let transocksContainer = pod.spec.containers.filter(container => container.name === 'transocks');
+                    let e2guardianContainer = pod.spec.containers.filter(container => container.name === 'e2guardian');
+                    expect(transocksContainer.length).eql(0);
+                    expect(e2guardianContainer.length).eql(0);
+                }
+            });
+        });
+        it('ssl enabled', async function() {
+            try {
+
+            } catch(err) {
+                console.error(`Failed test: ${err.message}`);
+                expect(err).to.be.null;
             }
         });
     });
