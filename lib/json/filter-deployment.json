@@ -80,7 +80,7 @@
           {
             "name": "guardian-tls-volume",
             "secret": {
-              "name": "guardian-tls"
+              "secretName": "guardian-tls"
             }
           }
         ]
