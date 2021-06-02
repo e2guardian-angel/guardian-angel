@@ -55,6 +55,18 @@ describe('Lookup', function() {
             await l.init();
         });
     });
+    describe('close', function() {
+        it('error', async function() {
+            let l = new Lookup({aclDatabaseFile: ':memory:'});
+            await l.init();
+            l.db = {
+                close: function() {
+                    return Promise.reject(new Error('error'));
+                }
+            }
+            await l.close();
+        });
+    });
     describe('cleanup', function() {
         it('no init', async function() {
             let l = new Lookup({aclDatabaseFile: ':memory:'});
