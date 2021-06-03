@@ -1,6 +1,7 @@
 'use strict';
 const Config = require('../../../lib/config');
 const Controller = require('../../../lib/controller');
+const lookup = require('../../../routes/lookup/lookup');
 const expect = require('chai').expect;
 const sandbox = require('sinon').createSandbox();
 const fs = require('fs');
@@ -251,6 +252,14 @@ describe('/lib/controller', function() {
             let controller = new Controller();
             controller.clearKubeData();
         });
+        it('valid', async function() {
+            const controller = new Controller();
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.secrets.redisPass}`)
+                .reply(200, {data: {REDIS_PASS: 'YWJjMTIzCg=='}})
+            const result = await controller.pullRedisPassword();
+            expect(result).not.null;
+        });
         it('error', async function() {
             const controller = new Controller();
             nock(process.env.KUBERNETES_BASE_URL)
@@ -440,7 +449,8 @@ describe('/lib/controller', function() {
             nock(process.env.KUBERNETES_BASE_URL)
                 .get(`/${controller.paths.kube.pods}`)
                 .reply(200, readyPod);
-            await controller.pollUntilReady();
+            const pollPromise = controller.pollUntilReady();
+            await pollPromise;
         });
         it('crashed container', async function() {
            let crashed = JSON.parse(JSON.stringify(readyPod));
@@ -451,7 +461,8 @@ describe('/lib/controller', function() {
                .reply(200, crashed);
            let error = null;
            try {
-               await controller.pollUntilReady()
+               let pollPromise = controller.pollUntilReady();
+               await pollPromise;
            } catch (err) {
                error = err;
            }
@@ -467,7 +478,8 @@ describe('/lib/controller', function() {
             nock(process.env.KUBERNETES_BASE_URL)
                 .get(`/${controller.paths.kube.pods}`)
                 .reply(200, readyPod);
-            await controller.pollUntilReady();
+            const pollPromise = controller.pollUntilReady();
+            await pollPromise;
         });
         it('no phase', async function() {
             let notRunning = JSON.parse(JSON.stringify(readyPod));
@@ -479,7 +491,8 @@ describe('/lib/controller', function() {
             nock(process.env.KUBERNETES_BASE_URL)
                 .get(`/${controller.paths.kube.pods}`)
                 .reply(200, readyPod);
-            await controller.pollUntilReady();
+            const pollPromise = controller.pollUntilReady();
+            await pollPromise;
         });
         it('deleting', async function() {
             let deleting = JSON.parse(JSON.stringify(readyPod));
@@ -491,7 +504,8 @@ describe('/lib/controller', function() {
             nock(process.env.KUBERNETES_BASE_URL)
                 .get(`/${controller.paths.kube.pods}`)
                 .reply(200, readyPod);
-            await controller.pollUntilReady();
+            const pollPromise = controller.pollUntilReady();
+            await pollPromise;
         });
     });
     describe('renderFilterDeployment', function() {
@@ -558,6 +572,23 @@ describe('/lib/controller', function() {
             let controller = new Controller();
             await controller.clearKubeData();
         });
+        it('valid', async function() {
+            let controller = new Controller();
+            controller.setConfig(new Config({}));
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.deployments.webfilter}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.deployments}`)
+                .reply(201);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.services.webfilter}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.services}`)
+                .reply(201);
+            await controller.deployFilter();
+        });
         it('error', async function() {
             let controller = new Controller();
             controller.setConfig(new Config({}));
@@ -581,6 +612,24 @@ describe('/lib/controller', function() {
             let controller = new Controller();
             await controller.clearKubeData();
         });
+        it('valid', async function() {
+            let controller = new Controller();
+            controller.setConfig(new Config({}));
+            await controller.initializeSecrets();
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.deployments.redis}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.deployments}`)
+                .reply(201);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.services.redis}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.services}`)
+                .reply(201);
+            await controller.deployRedis();
+        });
         it('no redisPass', async function() {
             let controller = new Controller();
             controller.setConfig(new Config({}));
@@ -606,7 +655,7 @@ describe('/lib/controller', function() {
                 .get(`/${controller.paths.resources.deployments.redis}`)
                 .reply(404);
             nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.redis}`)
+                .post(`/${controller.paths.kube.deployments}`)
                 .reply(401);
             let error = null;
             try {
@@ -622,6 +671,24 @@ describe('/lib/controller', function() {
             let controller = new Controller();
             await controller.clearKubeData();
         });
+        it('valid', async function() {
+            let controller = new Controller();
+            controller.setConfig(new Config({}));
+            await controller.initializeSecrets();
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.deployments.dns}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.deployments}`)
+                .reply(201);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.services.dns}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.services}`)
+                .reply(201);
+            await controller.deployDNS();
+        });
         it('no redisPass', async function() {
             let controller = new Controller();
             controller.setConfig(new Config({}));
@@ -658,6 +725,7 @@ describe('/lib/controller', function() {
             expect(error).not.null;
         });
     });
+
     describe('reloadPods', function() {
        it('error', async function() {
            const controller = new Controller();
@@ -712,6 +780,7 @@ describe('/lib/controller', function() {
            controller.pollUntilReady = poll;
        });
     });
+
     describe('initializeSecrets', async function() {
         beforeEach(async function() {
             const controller = new Controller();
@@ -728,262 +797,57 @@ describe('/lib/controller', function() {
             expect(error).not.null;
         });
     });
+
     describe('deployAll', function() {
+        function getFakeController() {
+            const controller = new Controller();
+            controller.kubeApply = function() { return Promise.resolve(201); };
+            controller.deployRedis = function() { return Promise.resolve(); };
+            controller.pollUntilReady = function() { return Promise.resolve(); };
+            controller.deployDNS = function() { return Promise.resolve(); };
+            controller.deployFilter = function() { return Promise.resolve(); };
+            controller.pollUntilReady = function() { return Promise.resolve(); };
+            controller.reloadPods = function() { return Promise.resolve(); };
+            controller.getKubeData = function() { return Promise.resolve(); };
+            return controller;
+        }
+        before(async function() {
+            sandbox.stub(lookup, 'openRedis').resolves();
+        });
+        after(async function() {
+            sandbox.restore();
+        });
         beforeEach(async function() {
             let controller = new Controller();
             controller.clearKubeData();
         });
         it('success', async function() {
-            let controller = new Controller();
+            let controller = getFakeController();
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.kube.pods}`)
+                .reply(200, {body: {items: []}});
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.secrets.redis}`)
+                .reply(200, {body: {items: []}});
             let config = new Config({});
             controller.setConfig(config);
             await controller.initializeSecrets();
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.configs.config}`)
-                .reply(200, {body: {'guardian.json': config}});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.secrets.redisPass}`)
-                .reply(200, {data: {REDIS_PASS: 'YWJjMTIzCg=='}}).persist(true)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.secrets.tls}`)
-                .reply(200, {data: {
-                        'tls.crt': 'YWJjMTIzCg==',
-                        'tls.key': 'YWJjMTIzCg=='
-                    }});
-            await controller.getKubeData();
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.kube.pods}`)
-                .reply(200, podsResponse);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.configs.config}`)
-                .reply(200, {data: {'guardian.json': JSON.stringify(config)}});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.configs.config}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.configMaps}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.secrets.redisPass}`)
-                .reply(200, {data: {REDIS_PASS: 'YWJjMTIzCg=='}}).persist(true)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.secrets.redisPass}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.secrets}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.secrets.tls}`)
-                .reply(200, {data: {
-                        'tls.crt': 'YWJjMTIzCg==',
-                        'tls.key': 'YWJjMTIzCg=='
-                    }}).persist(true);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.secrets.tls}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.deployments}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.deployments}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.deployments.redis}`)
-                .reply(200);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.deployments.redis}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.deployments.dns}`)
-                .reply(200);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.deployments.dns}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.deployments.webfilter}`)
-                .reply(200);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.deployments.webfilter}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.services}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.services.redis}`)
-                .reply(200, {
-                    metadata: {
-                        resourceVersion: '1'},
-                    spec: {
-                        clusterIP: '1.1.1.1',
-                        clusterIPs: ['1.1.1.1']
-                    }});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.services.redis}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.services.dns}`)
-                .reply(200, {
-                    metadata: {
-                        resourceVersion: '1'},
-                    spec: {
-                        clusterIP: '1.1.1.1',
-                        clusterIPs: ['1.1.1.1']
-                    }});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.services.dns}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.services.webfilter}`)
-                .reply(200, {
-                    metadata: {
-                        resourceVersion: '1'},
-                    spec: {
-                        clusterIP: '1.1.1.1',
-                        clusterIPs: ['1.1.1.1']
-                    }});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.services.webfilter}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.kube.pods}/redis`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.kube.pods}/dns`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.kube.pods}/webfilter`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .delete(`/${controller.paths.kube.pods}/redis`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .delete(`/${controller.paths.kube.pods}/dns`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .delete(`/${controller.paths.kube.pods}/webfilter`)
-                .reply(201);
-            controller.pollUntilReady = async function () {};
-            controller.getLookup().openRedis = function() {};
+            await controller.pushRedisPassword();
+            await controller.pullRedisPassword();
+            //controller.getLookup().openRedis = function() {};
             await controller.deployAll();
         });
         it('new secrets', async function() {
-            let controller = new Controller();
-            let config = new Config({});
-            controller.setConfig(config);
-            controller.initializeSecrets();
+            let controller = getFakeController();
             nock(process.env.KUBERNETES_BASE_URL)
                 .get(`/${controller.paths.kube.pods}`)
-                .reply(200, podsResponse);
+                .reply(200, {body: {items: []}});
             nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.configs.config}`)
-                .reply(200, {data: {'guardian.json': JSON.stringify(config)}});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.configs.config}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.configMaps}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.secrets.redisPass}`)
-                .reply(200, {data: {REDIS_PASS: 'YWJjMTIzCg=='}}).persist(true)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.secrets.redisPass}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.secrets}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.secrets.tls}`)
-                .reply(200, {data: {
-                        'tls.crt': 'YWJjMTIzCg==',
-                        'tls.key': 'YWJjMTIzCg=='
-                    }}).persist(true);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.secrets.tls}`)
-                .reply(201)
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.deployments}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.deployments}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.deployments.redis}`)
-                .reply(200);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.deployments.redis}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.deployments.dns}`)
-                .reply(200);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.deployments.dns}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.deployments.webfilter}`)
-                .reply(200);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.deployments.webfilter}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.services}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.services.redis}`)
-                .reply(200, {
-                    metadata: {
-                        resourceVersion: '1'},
-                    spec: {
-                        clusterIP: '1.1.1.1',
-                        clusterIPs: ['1.1.1.1']
-                    }});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.services.redis}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.services.dns}`)
-                .reply(200, {
-                    metadata: {
-                        resourceVersion: '1'},
-                    spec: {
-                        clusterIP: '1.1.1.1',
-                        clusterIPs: ['1.1.1.1']
-                    }});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.services.dns}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.services.webfilter}`)
-                .reply(200, {
-                    metadata: {
-                        resourceVersion: '1'},
-                    spec: {
-                        clusterIP: '1.1.1.1',
-                        clusterIPs: ['1.1.1.1']
-                    }});
-            nock(process.env.KUBERNETES_BASE_URL)
-                .put(`/${controller.paths.resources.services.webfilter}`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.kube.pods}/redis`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.kube.pods}/dns`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.kube.pods}/webfilter`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .delete(`/${controller.paths.kube.pods}/redis`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .delete(`/${controller.paths.kube.pods}/dns`)
-                .reply(201);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .delete(`/${controller.paths.kube.pods}/webfilter`)
-                .reply(201);
-            controller.pollUntilReady = async function () {};
-            controller.getLookup().openRedis = function() {};
+                .get(`/${controller.paths.resources.secrets.redis}`)
+                .reply(200, {body: {items: []}})
+            let config = new Config({});
+            controller.setConfig(config);
+            //controller.getLookup().openRedis = function() {};
             await controller.deployAll();
         });
         it('404', async function() {
@@ -1003,6 +867,7 @@ describe('/lib/controller', function() {
             expect(error).not.null;
         });
     });
+
     describe('writeConfigFile', function() {
         beforeEach(async function() {
             let controller = new Controller();
