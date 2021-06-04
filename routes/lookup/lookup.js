@@ -25,7 +25,7 @@ const openRedis = async function(kubeData) {
 }
 const closeRedis = async function() {
     if (reverseCache) {
-        await reverseCache.close();
+        await reverseCache.disconnect();
         reverseCache = null;
     }
 }
@@ -33,10 +33,12 @@ const closeRedis = async function() {
 const finish = async function() {
     if (localCache) {
         await localCache.close();
+        localCache = null;
     }
     await closeRedis();
     if (lookupDb) {
         await lookupDb.close();
+        lookupDb = null;
     }
 }
 
@@ -154,6 +156,8 @@ const lookupByIp = function(req, res) {
 }
 
 module.exports.init = init;
+module.exports.cacheLocally = cacheLocally;
+module.exports.recursiveCnameLookup = recursiveCnameLookup;
 module.exports.openRedis = openRedis;
 module.exports.closeRedis = closeRedis;
 module.exports.finish = finish;
