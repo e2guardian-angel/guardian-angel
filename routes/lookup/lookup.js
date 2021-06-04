@@ -42,7 +42,7 @@ const finish = async function() {
 
 const init = async function(kubeData) {
     lookupDb = new LookupDb(kubeData.config);
-    lookupDb.init();
+    await lookupDb.init();
 
     if (kubeData.config.configured && kubeData.config.redisConfig) {
         await openRedis(kubeData)
@@ -69,11 +69,6 @@ const recursiveCnameLookup = async function(cname) {
 }
 
 const lookupByHostName = function(req, res) {
-
-    if (!reverseCache) {
-        res.status(503).send('Redis cache not initialized');
-        return;
-    }
 
     const hostName = req.body.hostname;
     const category = req.body.category;
@@ -126,7 +121,7 @@ const lookupByIp = function(req, res) {
         res.send((typeof(localResult) === 'object') ? {match: true, result: localResult} : {match: false});
     } else {
         recursiveCnameLookup(ip).then(hostName => {
-            if (hostName) {
+            if (hostName !== ip) {
                 lookupDb.lookupHostName(hostName, category).then(result => {
                     if (result) {
                         cacheLocally(`${ip}:${category}`, result);

@@ -6,8 +6,6 @@ const expect = require('chai').expect;
 const sandbox = require('sinon').createSandbox();
 const fs = require('fs');
 const nock = require('nock');
-const mock = require('mock-require');
-mock('ioredis', 'ioredis-mock');
 
 let podsResponse = {
     items: [
