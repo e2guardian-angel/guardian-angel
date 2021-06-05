@@ -24,4 +24,15 @@ describe('server', function() {
             process.emit('SIGTERM');
         });
     });
+
+    it('error', function(done) {
+        sandbox.stub(Controller.prototype, 'getKubeData').rejects(new Error('error message'));
+        server.startup().then(() => {
+            done();
+        });
+    });
+
+    it('gracefulShutdown', async function() {
+        await server.gracefulShutdown()
+    });
 });
