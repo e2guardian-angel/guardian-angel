@@ -5,8 +5,6 @@ const Config = require('../../../lib/config');
 const lookup = require('../../../routes/lookup/lookup');
 const controller = new Controller();
 const expect = require('chai').expect;
-const assert = require('chai').assert;
-const fs = require('fs');
 const sandbox = require('sinon').createSandbox();
 
 describe('/lib/controller', function() {
