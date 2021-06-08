@@ -97,11 +97,12 @@ describe('/lib/controller', function() {
             });
         });
 
-        it('ssl + transparent', async function() {
+        it('ssl + transparent + https', async function() {
             try {
                 let sslConfig = new Config({});
                 sslConfig.sslBumpEnabled = true;
                 sslConfig.transparent = true;
+                sslConfig.httpsEnabled = true;
                 // Pull kubeconfig
                 console.info('Fetching kube data...');
                 await controller.getKubeData();

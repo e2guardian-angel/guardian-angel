@@ -8,29 +8,21 @@ const Config = require('../../lib/config');
 const controller = new Controller();
 
 async function setup(req, res) {
-    const configData = req.body.config;
-    const adminPassword = req.body.adminPassword;
     const tls = req.body.tls;
 
     // Pull config first to see if we are already configured
     const data = await controller.getKubeData();
-    if (data.config && data.config.configured) {
-        res.status(503).send('Already configured; log in and reset to reconfigure.');
+    if (data.config && data.config.httpsEnabled && data.config.tls) {
+        res.status(503).send('TLS already configured; log in and reset to reconfigure.');
         return;
     }
 
-    let config;
-    try {
-        config = new Config(configData);
-    } catch (err) {
-        res.status(503).send(`Invalid configuration: ${err.message}`);
-        return;
+    // Turn on https
+    let config = data.config;
+    if (!config) {
+        config = new Config({});
     }
-
-    if (!adminPassword) {
-        res.status(503).send('Admin password not set');
-        return;
-    }
+    config.httpsEnabled = true;
 
     controller.setConfig(config);
     if (tls) {
@@ -45,12 +37,7 @@ async function setup(req, res) {
         await controller.rotateTLS();
     }
 
-    //TODO: What to do with admin password?
-
-    await controller.initializeSecrets();
-
     await controller.pushTLS();
-    await controller.pushRedisPassword();
     await controller.pushConfig();
 
     res.status(201).send('OK');

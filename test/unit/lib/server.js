@@ -10,12 +10,32 @@ describe('server', function() {
     });
     it('start', function(done) {
         sandbox.stub(Controller.prototype, 'getKubeData').resolves({
-            config: new Config({}),
+            config: new Config({aclDatabaseFile: ':memory:'}),
             redisPass: 'abc123',
             tls: {
                 cert: 'certdata'
-            }
+            },
+            nginx: {}
         });
+        server.startup().then(() => {
+            sandbox.stub(process, 'exit').withArgs(0).callsFake(() => {
+                done();
+            });
+            // Stop app
+            process.emit('SIGTERM');
+        });
+    });
+
+    it('deploy nginx', function(done) {
+        sandbox.stub(Controller.prototype, 'getKubeData').resolves({
+            config: new Config({aclDatabaseFile: ':memory:'}),
+            redisPass: 'abc123',
+            tls: {
+                cert: 'certdata'
+            },
+            nginx: null
+        });
+        sandbox.stub(Controller.prototype, 'deployNginx').resolves();
         server.startup().then(() => {
             sandbox.stub(process, 'exit').withArgs(0).callsFake(() => {
                 done();

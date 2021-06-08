@@ -690,12 +690,7 @@ describe('/lib/controller', function() {
         it('no redisPass', async function() {
             let controller = new Controller();
             controller.setConfig(new Config({}));
-            nock(process.env.KUBERNETES_BASE_URL)
-                .get(`/${controller.paths.resources.deployments.dns}`)
-                .reply(404);
-            nock(process.env.KUBERNETES_BASE_URL)
-                .post(`/${controller.paths.kube.dns}`)
-                .reply(401);
+
             let error = null;
             try {
                 await controller.deployDNS();
@@ -717,6 +712,61 @@ describe('/lib/controller', function() {
             let error = null;
             try {
                 await controller.deployDNS();
+            } catch (err) {
+                error = err;
+            }
+            expect(error).not.null;
+        });
+    });
+
+    describe('deployNginx', function() {
+        beforeEach(async function() {
+            let controller = new Controller();
+            await controller.clearKubeData();
+        });
+        it('valid', async function() {
+            let controller = new Controller();
+            controller.setConfig(new Config({}));
+            await controller.initializeSecrets();
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.deployments.nginx}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.deployments}`)
+                .reply(201);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.services.nginx}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.services}`)
+                .reply(201);
+            await controller.deployNginx();
+        });
+        it('no tls', async function() {
+            let controller = new Controller();
+            controller.clearKubeData();
+            controller.setConfig(new Config({httpsEnabled: true}));
+            let error = null;
+            try {
+                await controller.deployNginx();
+            } catch (err) {
+                error = err;
+            }
+            expect(error).not.null;
+        });
+        it('error', async function() {
+            let controller = new Controller();
+            controller.setConfig(new Config({}));
+            await controller.initializeSecrets();
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.deployments.nginx}`)
+                .reply(404);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .post(`/${controller.paths.kube.nginx}`)
+                .reply(401);
+            let error = null;
+            try {
+                await controller.deployNginx();
             } catch (err) {
                 error = err;
             }
@@ -804,6 +854,7 @@ describe('/lib/controller', function() {
             controller.pollUntilReady = function() { return Promise.resolve(); };
             controller.deployDNS = function() { return Promise.resolve(); };
             controller.deployFilter = function() { return Promise.resolve(); };
+            controller.deployNginx = function() { return Promise.resolve(); };
             controller.pollUntilReady = function() { return Promise.resolve(); };
             controller.reloadPods = function() { return Promise.resolve(); };
             controller.getKubeData = function() { return Promise.resolve(); };
@@ -917,6 +968,18 @@ describe('/lib/controller', function() {
                 .reply(200, {});
             nock(process.env.KUBERNETES_BASE_URL)
                 .delete(`/${controller.paths.resources.services.redis}`)
+                .reply(201);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.deployments.nginx}`)
+                .reply(200, {});
+            nock(process.env.KUBERNETES_BASE_URL)
+                .delete(`/${controller.paths.resources.deployments.nginx}`)
+                .reply(201);
+            nock(process.env.KUBERNETES_BASE_URL)
+                .get(`/${controller.paths.resources.services.nginx}`)
+                .reply(200, {});
+            nock(process.env.KUBERNETES_BASE_URL)
+                .delete(`/${controller.paths.resources.services.nginx}`)
                 .reply(201);
             await controller.tearDown();
         });
