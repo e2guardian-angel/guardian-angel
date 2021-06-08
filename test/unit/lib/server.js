@@ -36,6 +36,7 @@ describe('server', function() {
             nginx: null
         });
         sandbox.stub(Controller.prototype, 'deployNginx').resolves();
+        sandbox.stub(Controller.prototype, 'pushConfig').resolves();
         server.startup().then(() => {
             sandbox.stub(process, 'exit').withArgs(0).callsFake(() => {
                 done();

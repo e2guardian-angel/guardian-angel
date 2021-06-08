@@ -39,6 +39,8 @@ async function setup(req, res) {
 
     await controller.pushTLS();
     await controller.pushConfig();
+    // Nginx should automatically reload since there is a change to the deployment and service
+    await controller.deployNginx();
 
     res.status(201).send('OK');
 }
