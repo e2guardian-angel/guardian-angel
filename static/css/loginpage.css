@@ -1,0 +1,42 @@
+#login {
+    width: 750px;
+    height: 450px;
+    border-radius: 10px;
+    background-color: white;
+    margin: auto;
+    margin-top: 10%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 8px 20px 0 rgba(0, 0, 0, 0.19);
+}
+#leftbanner {
+    background-image: url("/static/images/angel.png");
+    border-radius: 10px;
+    position: absolute;
+    width: 260px;
+    height: 450px;
+    float: left;
+}
+#loginBox {
+    vertical-align: middle;
+    background-color: white;
+    position: absolute;
+    width: 490px;
+    height: 450px;
+    right: 435px;
+    float: right;
+}
+#loginHeader {
+    vertical-align: middle;
+    text-align: center;
+    background-color: white;
+    margin-top: 20%;
+}
+#loginInput {
+    vertical-align: middle;
+    text-align: left;
+    background-color: white;
+    width: 200px;
+    height: 150px;
+}
+#loginButton {
+    width: 150px
+}

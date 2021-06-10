@@ -23,7 +23,8 @@ unauthRouter.post('/lookuphost', lookup.lookupHostName);
 // Unauthenticated paths
 unauthRouter.post('/api/setup', setup);
 unauthRouter.get('/ui/cert', cert);
-unauthRouter.get('/ui/login', login);
+unauthRouter.get('/ui/login', login.get);
+unauthRouter.post('/ui/login', login.post);
 
 // Authenticated paths
 const authRouter = express.Router();

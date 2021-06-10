@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/uipage.css">
+    <link rel="stylesheet" href="/static/css/loginpage.css">
+    <title>Guardian Angel Login</title>
+</head>
+<body>
+    <div id="login">
+        <div id="leftbanner">
+        </div>
+        <div id="loginBox">
+            <div align="center">
+                <div id="loginHeader">
+                    <h1>Guardian Angel</h1>
+                    <h3>Login</h3>
+                </div>
+                <form action="/login" id="loginForm" method="post">
+                    <div id="loginInput" align="left">
+                        <p>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" value="admin"/>
+                        </p>
+                        <p>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                        </p>
+                        <p align="center">
+                            <input type="submit" id="loginButton" value="Login" name="loginButton" />
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

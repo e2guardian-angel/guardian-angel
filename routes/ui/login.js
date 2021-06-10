@@ -1,7 +1,17 @@
 'use strict';
+const ejs = require('ejs');
+const fs = require('fs');
 
-function cert(req, res) {
-    res.status(200).send('This is the login page');
+const loginPage = fs.readFileSync(`${__dirname}/views/login.html`, 'utf-8');
+
+function login(req, res) {
+    res.status(200).send(ejs.render(loginPage));
 }
 
-module.exports = cert;
+function doLogin(req, res) {
+    let username = req.body.username;
+    // TODO: authenticate
+    res.redirect('/');
+}
+
+module.exports = {get: login, post: doLogin};
