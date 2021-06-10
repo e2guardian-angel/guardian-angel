@@ -6,6 +6,9 @@ const passport = require('passport');
 const loginPage = fs.readFileSync(`${__dirname}/views/login.html`, 'utf-8');
 
 function login(req, res) {
+    if (req.query.error) {
+        // TODO: show message for login error
+    }
     res.status(200).send(ejs.render(loginPage));
 }
 
@@ -14,8 +17,9 @@ async function doLogin(req, res, next) {
         res.status(401).json({message: 'Please enter a username and password.'});
     } else {
         await passport.authenticate('local', function(err, user, info) {
-            if (err) {
-                res.status(401).send({message: 'Invalid username or password.'});
+            if (err || !user) {
+                // TODO: This should be moved to an nginx location. Here we should just be returning 401.
+                return res.status(401).redirect('/login?error=true');
             }
             req.session.user = user;
             if(user._doc.forceReset) {
