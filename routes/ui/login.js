@@ -20,12 +20,14 @@ async function doLogin(req, res, next) {
             if (err || !user) {
                 // TODO: This should be moved to an nginx location. Here we should just be returning 401.
                 return res.status(401).redirect('/login?error=true');
-            }
-            req.session.user = user;
-            if(user._doc.forceReset) {
-                res.redirect('/passreset');
             } else {
-                res.redirect('/dashboard');
+                req.login(user, function(err) {
+                    if(user._doc.forceReset) {
+                        res.redirect('/passreset');
+                    } else {
+                        res.redirect('/dashboard');
+                    }
+                });
             }
         })(req, res, next);
     }

@@ -18,7 +18,7 @@ const lookup = require('./lookup/lookup');
 // Auth
 
 function isLoggedIn(req, res, next) {
-    if (req.session.user) {
+    if (req.isAuthenticated()) {
         return next();
     }
     res.redirect('/login');
