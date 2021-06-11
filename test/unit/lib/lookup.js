@@ -230,13 +230,13 @@ describe('Lookup', function() {
             expect(val).to.not.be.null;
             let error = null;
             // Constraint errors should be handled, no error thrown
-            l.loadDomainsFile(`${process.env.PWD}/test/unit/data/category1/domains`, 'myCategory');
+            await l.loadDomainsFile(`${process.env.PWD}/test/unit/data/category1/domains`, 'myCategory');
         })
         it('no init', async function() {
             let l = new Lookup({ aclDatabaseFile: 'filename' });
             let error;
             try {
-                l.loadDomainsFile(`${process.env.PWD}/test/unit/data/category1/domains`, 'myCategory');
+                await l.loadDomainsFile(`${process.env.PWD}/test/unit/data/category1/domains`, 'myCategory');
             } catch (err) {
                 error = err;
             }
@@ -269,7 +269,7 @@ describe('Lookup', function() {
             await l.init();
             let error;
             try {
-                l.loadDomainsFile(`${process.env.PWD}/test/unit/data/category1/domains`, 'myCategory');
+                await l.loadDomainsFile(`${process.env.PWD}/test/unit/data/category1/domains`, 'myCategory');
             } catch (err) {
                 error = err;
             }
