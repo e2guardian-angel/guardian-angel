@@ -25,7 +25,7 @@ async function doLogin(req, res, next) {
                     if(user._doc.forceReset) {
                         res.redirect('/passreset');
                     } else {
-                        res.redirect('/dashboard');
+                        res.redirect('/');
                     }
                 });
             }
