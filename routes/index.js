@@ -9,7 +9,7 @@ const configure = require('./api/configure');
 const deploy = require('./api/deploy');
 // UI paths
 const dashboard = require('./ui/dashboard');
-const passReset = require('./ui/passreset');
+const {passReset, doPassReset} = require('./ui/passreset');
 const setup = require('./api/setup');
 const cert = require('./ui/cert');
 const login = require('./ui/login');
@@ -41,6 +41,7 @@ router.use('/static', express.static('static'));
 router.post('/api/configure', isLoggedIn, configure);
 router.get('/api/deploy', isLoggedIn, deploy);
 router.get('/ui/passreset', isLoggedIn, passReset);
+router.post('/ui/passreset', isLoggedIn, doPassReset);
 router.get('/ui/dashboard', isLoggedIn, dashboard);
 
 module.exports = router;

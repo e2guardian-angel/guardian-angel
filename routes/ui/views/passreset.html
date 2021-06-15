@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/uipage.css">
+    <link rel="stylesheet" href="/static/css/passreset.css">
+    <title>Reset Password</title>
+</head>
+<body>
+    <div id="passReset">
+        <div id="leftbanner">
+        </div>
+        <div id="passResetBox">
+            <div align="center">
+                <div id="passResetHeader">
+                    <h1>Password Reset Required</h1>
+                    <h3>Username: <%= username %></h3>
+                </div>
+                <form action="/passreset" id="passResetForm" method="post">
+                    <div id="passResetInput" align="left">
+                        <p>
+                            <input type="hidden" id="username" name="username" value="<%= username %>">
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                        </p>
+                        <p>
+                            <input type="password" class="form-control" id="confirm" name="confirm" placeholder="Confirm">
+                        </p>
+                        <p align="center">
+                            <input type="submit" id="passResetButton" value="Change Password" name="passResetButton" />
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
