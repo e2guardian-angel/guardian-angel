@@ -7,15 +7,56 @@
     <title>Guardian Angel Web Filter</title>
 </head>
 <body>
-  <div id="dashboard">
-      <div class="tab">
-          <button class="tablinks" onclick="openTab(event, 'Overview')">Overview</button>
-          <button class="tablinks" onclick="openTab(event, 'Filter')">Filter</button>
-          <button class="tablinks" onclick="openTab(event, 'Categories')">Categories</button>
-          <button class="tablinks" onclick="openTab(event, 'Phrases')">Phrases</button>
-          <button class="tablinks" onclick="openTab(event, 'Advanced')">Advanced</button>
-      </div>
-      This is the dashboard
+  <div class="tab">
+      <button class="tablinks" id="OverviewButton" onclick="openTab(event, 'Overview')">Overview</button>
+      <button class="tablinks" onclick="openTab(event, 'Profiles')">Profiles</button>
+      <button class="tablinks" onclick="openTab(event, 'Filter')">Filter</button>
+      <button class="tablinks" onclick="openTab(event, 'Categories')">Categories</button>
+      <button class="tablinks" onclick="openTab(event, 'Phrases')">Phrases</button>
+      <button class="tablinks" onclick="openTab(event, 'Advanced')">Advanced</button>
   </div>
+  <div id="Overview" class="tabcontent">
+      <%= overviewContent %>
+  </div>
+  <div id="Profiles" class="tabcontent">
+      <%= profilesContent %>
+  </div>
+  <div id="Filter" class="tabcontent">
+      <%= filterContent %>
+  </div>
+  <div id="Categories" class="tabcontent">
+      <%= categoriesContent %>
+  </div>
+  <div id="Phrases" class="tabcontent">
+      <%= phrasesContent %>
+  </div>
+  <div id="Advanced" class="tabcontent">
+      <%= advancedContent %>
+  </div>
+
+  <script>
+      function openTab(evt, tabName) {
+          // Declare all variables
+          var i, tabcontent, tablinks;
+
+          // Get all elements with class="tabcontent" and hide them
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+              tabcontent[i].style.display = "none";
+          }
+
+          // Get all elements with class="tablinks" and remove the class "active"
+          tablinks = document.getElementsByClassName("tablinks");
+          for (i = 0; i < tablinks.length; i++) {
+              tablinks[i].className = tablinks[i].className.replace(" active", "");
+          }
+
+          // Show the current tab, and add an "active" class to the button that opened the tab
+          document.getElementById(tabName).style.display = "block";
+          evt.currentTarget.className += " active";
+      }
+      overviewBtn = document.getElementById("OverviewButton");
+      overviewBtn.click();
+  </script>
 </body>
 </html>
