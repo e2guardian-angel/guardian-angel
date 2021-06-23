@@ -3,7 +3,7 @@ const ejs = require('ejs');
 const fs = require('fs');
 
 function cert(req, res) {
-    const overview = fs.readFileSync(`${__dirname}/views/overview-content.html`);
+    const overview = fs.readFileSync(`${__dirname}/views/overview-content.html`, 'utf-8');
     const profiles = fs.readFileSync(`${__dirname}/views/profiles-content.html`);
     const filter = fs.readFileSync(`${__dirname}/views/filter-content.html`);
     const categories = fs.readFileSync(`${__dirname}/views/categories-content.html`);

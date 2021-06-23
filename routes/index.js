@@ -13,6 +13,7 @@ const {passReset, doPassReset} = require('./ui/passreset');
 const setup = require('./api/setup');
 const cert = require('./ui/cert');
 const login = require('./ui/login');
+const getConfig = require('./api/getConfig');
 // Internal paths
 const lookup = require('./lookup/lookup');
 // Auth
@@ -40,6 +41,7 @@ router.use('/static', express.static('static'));
 // Authenticated paths
 router.post('/api/configure', isLoggedIn, configure);
 router.get('/api/deploy', isLoggedIn, deploy);
+router.get('/api/getconfig', isLoggedIn, getConfig);
 router.get('/ui/passreset', isLoggedIn, passReset);
 router.post('/ui/passreset', isLoggedIn, doPassReset);
 router.get('/ui/dashboard', isLoggedIn, dashboard);
