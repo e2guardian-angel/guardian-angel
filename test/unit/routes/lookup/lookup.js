@@ -41,7 +41,7 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({config: config}).then(() => {
+            lookup.init(config).then(() => {
                 lookup.cacheLocally('1.2.3.4', false);
                 done();
             });
@@ -52,7 +52,7 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({config: config}).then(() => {
+            lookup.init(config).then(() => {
                 lookup.cacheLocally('1.2.3.4', false);
                 done();
             });
@@ -83,7 +83,7 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({config: config}).then(() => {
+            lookup.init(config).then(() => {
                 lookup.recursiveCnameLookup('1.2.3.4').then(hostname => {
                     expect(hostname).eql('domain2.com');
                     done();
@@ -97,7 +97,7 @@ describe('/routes/lookup/lookup', function() {
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
             let error = null;
-            lookup.init({config: config}).then(() => {
+            lookup.init(config).then(() => {
                 lookup.recursiveCnameLookup('1.2.3.4').then(result => {
                     expect(result.match).false;
                     done();
@@ -138,7 +138,7 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            await lookup.init({config: config});
+            await lookup.init(config);
 
             await lookup.lookupHostName(request, response);
             const result = response._getData();
@@ -182,7 +182,7 @@ describe('/routes/lookup/lookup', function() {
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
             try {
-                await lookup.init({config: config});
+                await lookup.init(config);
             } catch(err) {
                 console.log(err);
             }
@@ -230,7 +230,7 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            await lookup.init({config: config});
+            await lookup.init(config);
 
             await lookup.lookupHostName(request, response);
             expect(response.statusCode).eql(500);
@@ -284,9 +284,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({redisPass: 'abc123', config: config}).then(() => {
+            process.env.REDIS_PASSWORD = 'abc123'
+            lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
+            delete process.env.REDIS_PASSWORD;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -315,9 +317,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({redisPass: 'abc123', config: config}).then(() => {
+            process.env.REDIS_PASSWORD = 'abc123';
+            lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
+            delete process.env.REDIS_PASSWORD;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(500);
@@ -344,11 +348,13 @@ describe('/routes/lookup/lookup', function() {
             const lookup = require('../../../../routes/lookup/lookup');
             let config = new Config({});
             config.aclDatabaseFile = ':memory:';
+            process.env.REDIS_PASSWORD = 'abc123';
             lookup.finish().then(() => {
-                lookup.init({redisPass: 'abc123', config: config}).then(() => {
+                lookup.init(config).then(() => {
                     lookup.lookupByIp(request, response);
                 });
             });
+            delete process.env.REDIS_PASSWORD;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(503);
@@ -381,9 +387,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({redisPass: 'abc123', config: config}).then(() => {
+            process.env.REDIS_PASSWORD = 'abc123';
+            lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
+            delete process.env.REDIS_PASSWORD;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -418,9 +426,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({redisPass: 'abc123', config: config}).then(() => {
+            process.env.REDIS_PASSWORD = 'abc123';
+            lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
+            delete process.env.REDIS_PASSWORD;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -451,9 +461,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({redisPass: 'abc123', config: config}).then(() => {
+            process.env.REDIS_PASSWORD = 'abc123';
+            lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
+            delete process.env.REDIS_PASSWORD;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -491,7 +503,7 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({config: config}).then(() => {
+            lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
 
@@ -523,9 +535,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            lookup.init({redisPass: 'abc123', config: config}).then(() => {
+            process.env.REDIS_PASSWORD = 'abc123';
+            lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
+            delete process.env.REDIS_PASSWORD;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);

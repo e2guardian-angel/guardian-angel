@@ -3,7 +3,6 @@ const LookupDb = require('../../lib/lookup');
 const Redis = require('ioredis');
 const NodeCache = require('node-cache');
 const nconf = require('nconf');
-const Controller = require('../../lib/controller');
 
 nconf.env('__');
 
@@ -15,11 +14,11 @@ let localCache;
  * Just close/open redis; this way we won't have to reinitialize
  * everything on a reload
  */
-const openRedis = async function(kubeData) {
+const openRedis = async function(config) {
     // Make a copy of redisConfig to protect secret data
-    const redisConfig = JSON.parse(JSON.stringify(kubeData.config.redisConfig));
-    if (kubeData.redisPass) {
-        redisConfig.password = kubeData.redisPass;
+    const redisConfig = JSON.parse(JSON.stringify(config.redisConfig));
+    if (process.env.REDIS_PASSWORD) {
+        redisConfig.password = process.env.REDIS_PASSWORD;
     }
     reverseCache = new Redis(redisConfig);
 }
@@ -42,13 +41,13 @@ const finish = async function() {
     }
 }
 
-const init = async function(kubeData) {
-    lookupDb = new LookupDb(kubeData.config);
+const init = async function(config) {
+    lookupDb = new LookupDb(config);
     await lookupDb.init();
 
-    if (kubeData.config.configured && kubeData.config.redisConfig) {
-        await openRedis(kubeData)
-        localCache = new NodeCache(kubeData.config.cacheConfig);
+    if (config.configured && config.redisConfig) {
+        await openRedis(config)
+        localCache = new NodeCache(config.cacheConfig);
     }
 }
 
