@@ -284,11 +284,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            process.env.REDIS_PASSWORD = 'abc123'
+            process.env.REDIS_PASS = 'abc123'
             lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
-            delete process.env.REDIS_PASSWORD;
+            delete process.env.REDIS_PASS;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -317,11 +317,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            process.env.REDIS_PASSWORD = 'abc123';
+            process.env.REDIS_PASS = 'abc123';
             lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
-            delete process.env.REDIS_PASSWORD;
+            delete process.env.REDIS_PASS;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(500);
@@ -348,13 +348,13 @@ describe('/routes/lookup/lookup', function() {
             const lookup = require('../../../../routes/lookup/lookup');
             let config = new Config({});
             config.aclDatabaseFile = ':memory:';
-            process.env.REDIS_PASSWORD = 'abc123';
+            process.env.REDIS_PASS = 'abc123';
             lookup.finish().then(() => {
                 lookup.init(config).then(() => {
                     lookup.lookupByIp(request, response);
                 });
             });
-            delete process.env.REDIS_PASSWORD;
+            delete process.env.REDIS_PASS;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(503);
@@ -387,11 +387,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            process.env.REDIS_PASSWORD = 'abc123';
+            process.env.REDIS_PASS = 'abc123';
             lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
-            delete process.env.REDIS_PASSWORD;
+            delete process.env.REDIS_PASS;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -426,11 +426,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            process.env.REDIS_PASSWORD = 'abc123';
+            process.env.REDIS_PASS = 'abc123';
             lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
-            delete process.env.REDIS_PASSWORD;
+            delete process.env.REDIS_PASS;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -461,11 +461,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            process.env.REDIS_PASSWORD = 'abc123';
+            process.env.REDIS_PASS = 'abc123';
             lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
-            delete process.env.REDIS_PASSWORD;
+            delete process.env.REDIS_PASS;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);
@@ -535,11 +535,11 @@ describe('/routes/lookup/lookup', function() {
             let config = new Config({});
             config.configured = true;
             config.aclDatabaseFile = ':memory:';
-            process.env.REDIS_PASSWORD = 'abc123';
+            process.env.REDIS_PASS = 'abc123';
             lookup.init(config).then(() => {
                 lookup.lookupByIp(request, response);
             });
-            delete process.env.REDIS_PASSWORD;
+            delete process.env.REDIS_PASS;
 
             response.on('end', function() {
                 expect(response.statusCode).to.equal(200);

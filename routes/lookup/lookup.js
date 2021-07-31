@@ -17,8 +17,8 @@ let localCache;
 const openRedis = async function(config) {
     // Make a copy of redisConfig to protect secret data
     const redisConfig = JSON.parse(JSON.stringify(config.redisConfig));
-    if (process.env.REDIS_PASSWORD) {
-        redisConfig.password = process.env.REDIS_PASSWORD;
+    if (process.env.REDIS_PASS) {
+        redisConfig.password = process.env.REDIS_PASS;
     }
     reverseCache = new Redis(redisConfig);
 }
