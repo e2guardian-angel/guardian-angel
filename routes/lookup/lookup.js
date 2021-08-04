@@ -154,6 +154,24 @@ const lookupByIp = function(req, res) {
     }
 }
 
+const addHostEntry = async function(req, res) {
+
+    const hostName = req.body.hostname;
+    const category = req.body.category;
+
+    if (!hostName || !category) {
+        res.sendStatus(500);
+        return;
+    }
+
+    try {
+        await lookupDb.addHostName(hostName, category);
+        res.status(200).send('OK');
+    } catch (err) {
+        res.status(500).send();
+    }
+}
+
 module.exports.init = init;
 module.exports.cacheLocally = cacheLocally;
 module.exports.recursiveCnameLookup = recursiveCnameLookup;
@@ -162,3 +180,4 @@ module.exports.closeRedis = closeRedis;
 module.exports.finish = finish;
 module.exports.lookupHostName = lookupByHostName;
 module.exports.lookupByIp = lookupByIp;
+module.exports.addHostEntry = addHostEntry;
