@@ -2,13 +2,22 @@
 const LookupDb = require('../../lib/lookup');
 const Redis = require('ioredis');
 const NodeCache = require('node-cache');
+const tar = require('tar');
+const https = require('https');
+const http = require('http');
+const path = require('path');
+const fs = require('fs');
 const nconf = require('nconf');
+const Semaphore = require('semaphore');
 
 nconf.env('__');
 
 let lookupDb;
 let reverseCache;
 let localCache;
+const bulkSqlLock = new Semaphore(1);
+
+let tmpDir = '/tmp';
 
 /*
  * Just close/open redis; this way we won't have to reinitialize
@@ -172,6 +181,74 @@ const addHostEntry = async function(req, res) {
     }
 }
 
+const downloadAndInstall = async function(url, destDir, downloadFileName, unpackdir) {
+    if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir);
+    }
+
+    if (fs.existsSync(path.join(destDir, unpackdir))) {
+        // Already downloaded
+        return await lookupDb.loadDomainsDirectory(path.join(destDir, unpackdir));
+    }
+
+    const file = fs.createWriteStream(path.join(destDir, downloadFileName));
+    console.info(`Downloading ${downloadFileName}...`);
+    const downloader = (url.indexOf('https') >= 0) ? https : http;
+
+    const parsedUrl = new URL(url);
+    const options = {
+        host: parsedUrl.host,
+        path: parsedUrl.pathname,
+        family: 4
+    };
+    if (parsedUrl.port) {
+        options.port = parsedUrl.port;
+    }
+
+    await downloader.get(options,
+        function(response) {
+            response.pipe(file);
+            file.on('finish', async function() {
+                file.close();
+                console.info('Download complete.')
+                await tar.x({
+                    file: file.path,
+                    gzip: true,
+                    cwd: destDir
+                });
+                fs.unlinkSync(file.path);
+                bulkSqlLock.take(async function() {
+                    await lookupDb.loadDomainsDirectory(path.join(destDir, unpackdir));
+                    bulkSqlLock.leave();
+                });
+            });
+        });
+}
+
+const installShallaLists = async function(req, res) {
+    const destDir = path.join(tmpDir, 'shalla');
+    downloadAndInstall(
+        'https://www.shallalist.de/Downloads/shallalist.tar.gz',
+        destDir,
+        'shallalist.tar.gz',
+        'BL'
+    );
+
+    res.status(200).send('OK');
+}
+
+const installCapitoleBlacklists = async function(req, res) {
+    const destDir = path.join(tmpDir, 'capitole');
+    downloadAndInstall(
+        'http://dsi.ut-capitole.fr/blacklists/download/blacklists.tar.gz',
+        destDir,
+        'blacklists.tar.gz',
+        'blacklists'
+    );
+
+    res.status(200).send('OK');
+}
+
 module.exports.init = init;
 module.exports.cacheLocally = cacheLocally;
 module.exports.recursiveCnameLookup = recursiveCnameLookup;
@@ -181,3 +258,5 @@ module.exports.finish = finish;
 module.exports.lookupHostName = lookupByHostName;
 module.exports.lookupByIp = lookupByIp;
 module.exports.addHostEntry = addHostEntry;
+module.exports.installShallaLists = installShallaLists;
+module.exports.installCapitoleBlacklists = installCapitoleBlacklists;
