@@ -18,6 +18,7 @@ let localCache;
 const bulkSqlLock = new Semaphore(1);
 
 let tmpDir = '/tmp';
+let gaConfig;
 
 /*
  * Just close/open redis; this way we won't have to reinitialize
@@ -51,7 +52,8 @@ const finish = async function() {
 }
 
 const init = async function(config) {
-    lookupDb = new LookupDb(config);
+    gaConfig = config;
+    lookupDb = new LookupDb();
     await lookupDb.init();
 
     if (config.configured && config.redisConfig) {
@@ -70,7 +72,7 @@ const cacheLocally = function(key, value) {
 
 const recursiveCnameLookup = async function(cname) {
     try {
-        const next = await reverseCache.get(cname);
+        const next = gaConfig.safeSearchOverrides[cname] || await reverseCache.get(cname);
         return (next) ? await recursiveCnameLookup(next) : cname;
     } catch (err) {
         console.log('Failure during recursive CNAME lookup');
