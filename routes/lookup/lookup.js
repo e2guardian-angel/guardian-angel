@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const nconf = require('nconf');
 const Semaphore = require('semaphore');
+const retry = require('retry');
 
 nconf.env('__');
 
@@ -19,6 +20,7 @@ const bulkSqlLock = new Semaphore(1);
 
 let tmpDir = '/tmp';
 let gaConfig;
+let lastError = Date.now();
 
 /*
  * Just close/open redis; this way we won't have to reinitialize
@@ -31,7 +33,18 @@ const openRedis = async function(config) {
         redisConfig.password = process.env.REDIS_PASS;
     }
     reverseCache = new Redis(redisConfig);
+
+    // Don't dump too many error messages
+    reverseCache.on('error', function() {
+        const now = Date.now();
+        if (now - lastError >= redisConfig.errorLogDelay) {
+            console.log('Failed to connect redis, retrying...');
+            lastError = now;
+        }
+    });
+
 }
+
 const closeRedis = async function() {
     if (reverseCache) {
         await reverseCache.disconnect();
