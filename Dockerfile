@@ -1,4 +1,5 @@
-FROM node:current-alpine3.12
+FROM node:current-alpine
+
 
 RUN mkdir -p /app \
   && mkdir -p /opt/guardian/acl \
@@ -10,6 +11,9 @@ COPY . .
 RUN npm install
 
 EXPOSE 3000
+
+arg VERSION
+env NODEVERSION ${VERSION}
 
 USER node
 CMD ["node", "app.js"]
