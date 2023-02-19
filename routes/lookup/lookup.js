@@ -99,7 +99,7 @@ const lookupByHostName = function(req, res) {
     const category = req.body.category;
 
     if (!hostName || !category) {
-        res.sendStatus(500);
+        res.send(500).send('hostname or category not specified in request');
         return;
     }
 
@@ -136,7 +136,7 @@ const lookupByIp = function(req, res) {
     const category = req.body.category;
 
     if (!ip || !category) {
-        res.sendStatus(500);
+        res.status(500).send('IP addres or category not specified in request');
         return;
     }
 
@@ -184,7 +184,7 @@ const addHostEntry = async function(req, res) {
     const category = req.body.category;
 
     if (!hostName || !category) {
-        res.sendStatus(500);
+        res.status(500).send('hostname or category not specified in request');
         return;
     }
 
@@ -192,7 +192,7 @@ const addHostEntry = async function(req, res) {
         await lookupDb.addHostName(hostName, category);
         res.status(200).send('OK');
     } catch (err) {
-        res.status(500).send();
+        res.status(500).send(err);
     }
 }
 
