@@ -1,6 +1,6 @@
 {
   "name": "guardian-angel",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "A node library and Web UI for configuring squid and e2guardian",
   "main": "app.js",
   "scripts": {
