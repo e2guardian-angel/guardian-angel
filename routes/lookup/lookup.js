@@ -7,6 +7,7 @@ const https = require('https');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const nconf = require('nconf');
 const Semaphore = require('semaphore');
 const retry = require('retry');
@@ -18,7 +19,8 @@ let reverseCache;
 let localCache;
 const bulkSqlLock = new Semaphore(1);
 
-let tmpDir = '/tmp';
+const appPrefix = 'guardian-angel';
+let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), appPrefix));
 let gaConfig;
 let lastError = Date.now();
 
@@ -29,9 +31,6 @@ let lastError = Date.now();
 const openRedis = async function(config) {
     // Make a copy of redisConfig to protect secret data
     const redisConfig = JSON.parse(JSON.stringify(config.redisConfig));
-    if (process.env.REDIS_PASS) {
-        redisConfig.password = process.env.REDIS_PASS;
-    }
     reverseCache = new Redis(redisConfig);
 
     // Don't dump too many error messages
@@ -99,7 +98,7 @@ const lookupByHostName = function(req, res) {
     const category = req.body.category;
 
     if (!hostName || !category) {
-        res.send(500).send('hostname or category not specified in request');
+        res.status(500).send('hostname or category not specified in request');
         return;
     }
 
@@ -123,6 +122,12 @@ const lookupByHostName = function(req, res) {
             }
         });
     }
+}
+
+const cleanup = async function(req, res) {
+    await lookupDb.cleanup();
+    await lookupDb.init();
+    res.status(200).send('OK');
 }
 
 const lookupByIp = function(req, res) {
@@ -243,7 +248,7 @@ const downloadAndInstall = async function(url, destDir, downloadFileName, unpack
 const installShallaLists = async function(req, res) {
     const destDir = path.join(tmpDir, 'shalla');
     downloadAndInstall(
-        'https://www.shallalist.de/Downloads/shallalist.tar.gz',
+        'https://web.archive.org/web/20210502020725if_/http://www.shallalist.de/Downloads/shallalist.tar.gz',
         destDir,
         'shallalist.tar.gz',
         'BL'
@@ -272,6 +277,7 @@ module.exports.closeRedis = closeRedis;
 module.exports.finish = finish;
 module.exports.lookupHostName = lookupByHostName;
 module.exports.lookupByIp = lookupByIp;
+module.exports.cleanup = cleanup;
 module.exports.addHostEntry = addHostEntry;
 module.exports.installShallaLists = installShallaLists;
 module.exports.installCapitoleBlacklists = installCapitoleBlacklists;

@@ -14,6 +14,7 @@ const router = express.Router();
 router.post('/lookupip', lookup.lookupByIp);
 router.post('/lookuphost', lookup.lookupHostName);
 router.post('/api/addhost', auth, lookup.addHostEntry);
+router.get('/api/cleanup', auth, lookup.cleanup);
 router.get('/api/installshalla', auth, lookup.installShallaLists);
 router.get('/api/installcapitole', auth, lookup.installCapitoleBlacklists);
 
