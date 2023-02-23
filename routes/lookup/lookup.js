@@ -201,6 +201,57 @@ const addHostEntry = async function(req, res) {
     }
 }
 
+const listCategories = async function(req, res) {
+    
+    let hostName = '';
+    if (req.body && req.body.hostname) {
+        hostName = req.body.hostname;
+    }
+
+    try {
+        const categories = await lookupDb.listCategories(hostName);
+        res.setHeader('content-type', 'application/json');
+        res.status(200).send(JSON.stringify(categories));
+    } catch (err) {
+        res.status(500).send(err);
+    }
+}
+
+const deleteHostEntry = async function(req, res) {
+
+    const hostName = req.body.hostname;
+    const category = req.body.category;
+
+    if (!hostName || !category) {
+        res.status(500).send('hostname or category not specified in request');
+        return;
+    }
+
+    try {
+        await lookupDb.deleteHostname(hostName, category);
+        res.status(200).send('OK');
+    } catch (err) {
+        res.status(500).send(err);
+    }
+}
+
+const deleteCategory = async function(req, res) {
+
+    const category = req.body.category;
+
+    if (!category) {
+        res.status(500).send('category not specified in request');
+        return;
+    }
+
+    try {
+        await lookupDb.deleteCategory(category);
+        res.status(200).send('OK');
+    } catch (err) {
+        res.status(500).send(err);
+    }
+}
+
 const downloadAndInstall = async function(url, destDir, downloadFileName, unpackdir) {
     if (!fs.existsSync(destDir)) {
         fs.mkdirSync(destDir);
@@ -279,5 +330,8 @@ module.exports.lookupHostName = lookupByHostName;
 module.exports.lookupByIp = lookupByIp;
 module.exports.cleanup = cleanup;
 module.exports.addHostEntry = addHostEntry;
+module.exports.deleteHostEntry = deleteHostEntry;
+module.exports.listCategories = listCategories;
+module.exports.deleteCategory = deleteCategory;
 module.exports.installShallaLists = installShallaLists;
 module.exports.installCapitoleBlacklists = installCapitoleBlacklists;
