@@ -1,6 +1,16 @@
 'use strict';
 
 const express = require('express');
+const multer = require('multer');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+// Initialize multipart upload middleware
+const appPrefix = 'guardian-angel';
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), appPrefix));
+const uploadDir = path.join(tmpDir, 'uploads');
+const upload = multer({dest: uploadDir})
 
 // Internal paths
 const lookup = require('./lookup/lookup');
@@ -19,6 +29,7 @@ router.post('/api/listCategories', auth, lookup.listCategories);
 router.post('/api/deletecategory', auth, lookup.deleteCategory);
 router.get('/api/cleanup', auth, lookup.cleanup);
 router.get('/api/installshalla', auth, lookup.installShallaLists);
-router.get('/api/installcapitole', auth, lookup.installCapitoleBlacklists);
+//router.get('/api/installcapitole', auth, lookup.installCapitoleBlacklists);
+router.post('/api/upload', auth, upload.single('listfile'), lookup.installList);
 
 module.exports = router;

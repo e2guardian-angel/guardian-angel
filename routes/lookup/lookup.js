@@ -10,6 +10,7 @@ const fs = require('fs');
 const os = require('os');
 const nconf = require('nconf');
 const Semaphore = require('semaphore');
+const multer = require('multer');
 const retry = require('retry');
 
 nconf.env('__');
@@ -297,6 +298,7 @@ const downloadAndInstall = async function(url, destDir, downloadFileName, unpack
 }
 
 const installShallaLists = async function(req, res) {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), appPrefix));
     const destDir = path.join(tmpDir, 'shalla');
     downloadAndInstall(
         'https://web.archive.org/web/20210502020725if_/http://www.shallalist.de/Downloads/shallalist.tar.gz',
@@ -308,16 +310,35 @@ const installShallaLists = async function(req, res) {
     res.status(200).send('OK');
 }
 
-const installCapitoleBlacklists = async function(req, res) {
-    const destDir = path.join(tmpDir, 'capitole');
-    downloadAndInstall(
-        'http://dsi.ut-capitole.fr/blacklists/download/blacklists.tar.gz',
-        destDir,
-        'blacklists.tar.gz',
-        'blacklists'
-    );
-
-    res.status(200).send('OK');
+const installList = async function(req, res) {
+    console.log('Body: ' + JSON.stringify(req.file));
+    const filePath = req.file.path;
+    const containingDir = filePath.replace(path.basename(filePath), '');
+    const outputDir = path.join(containingDir, 'listdir');
+    fs.mkdirSync(outputDir);
+    const parts = req.file.originalname.split('.');
+    if (parts.indexOf('tar') < 0 && parts.indexOf('tgz') < 0) {
+        return res.status(500).send('Invalid file format; expected .tar, .tar.gz or .tgz');
+    }
+    const gz = parts.indexOf('gz') > 0 || parts.indexOf('tgz') > 0;
+    try {
+        await tar.x({
+            file: filePath,
+            gzip: gz,
+            cwd: outputDir
+        });
+        // If there is only one directory in the extracted path, that is the root.
+        const lsDir = fs.readdirSync(outputDir);
+        let listDir = outputDir;
+        if (lsDir.length == 1) {
+            listDir = path.join(outputDir, lsDir[0]);
+        }
+        lookupDb.loadDomainsDirectory(listDir);
+        return res.status(200).send('OK');
+    } catch (err) {
+        res.status(500).send('Invalid file format');
+    }
+    
 }
 
 module.exports.init = init;
@@ -333,5 +354,4 @@ module.exports.addHostEntry = addHostEntry;
 module.exports.deleteHostEntry = deleteHostEntry;
 module.exports.listCategories = listCategories;
 module.exports.deleteCategory = deleteCategory;
-module.exports.installShallaLists = installShallaLists;
-module.exports.installCapitoleBlacklists = installCapitoleBlacklists;
+module.exports.installList = installList;
