@@ -24,8 +24,10 @@
   },
   "homepage": "https://github.com/justinschw/guardian-angel#readme",
   "dependencies": {
+    "async-mutex": "^0.4.0",
     "express": "^4.17.1",
     "findit": "^2.0.0",
+    "fs-extra": "^11.1.0",
     "ioredis": "^4.27.1",
     "joi": "^17.3.0",
     "jsonwebtoken": "^9.0.0",

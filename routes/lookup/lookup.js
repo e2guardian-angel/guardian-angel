@@ -6,11 +6,11 @@ const tar = require('tar');
 const https = require('https');
 const http = require('http');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const os = require('os');
 const nconf = require('nconf');
 const Semaphore = require('semaphore');
-const multer = require('multer');
+const Mutex = require('async-mutex').Mutex;
 const retry = require('retry');
 
 nconf.env('__');
@@ -21,9 +21,17 @@ let localCache;
 const bulkSqlLock = new Semaphore(1);
 
 const appPrefix = 'guardian-angel';
-let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), appPrefix));
 let gaConfig;
 let lastError = Date.now();
+
+const listGenMutex = new Mutex();
+// Current list upload/download state
+let currentState = {
+    loading: false,
+    generating: false,
+    genFile: '',
+    createdAt: null
+};
 
 /*
  * Just close/open redis; this way we won't have to reinitialize
@@ -310,18 +318,37 @@ const installShallaLists = async function(req, res) {
     res.status(200).send('OK');
 }
 
+const getState = async function() {
+    return currentState;
+}
+
 const installList = async function(req, res) {
-    console.log('Body: ' + JSON.stringify(req.file));
+
+    // Resource lock
+    const release = await listGenMutex.acquire();
+    currentState.loading = true;
+
     const filePath = req.file.path;
     const containingDir = filePath.replace(path.basename(filePath), '');
     const outputDir = path.join(containingDir, 'listdir');
-    fs.mkdirSync(outputDir);
     const parts = req.file.originalname.split('.');
+
+    function cleanUp() {
+        fs.emptyDirSync(outputDir);
+        fs.rmdirSync(outputDir);
+        fs.rmSync(filePath);
+        currentState.loading = false;
+        release();
+    }
+
     if (parts.indexOf('tar') < 0 && parts.indexOf('tgz') < 0) {
+        cleanUp();
         return res.status(500).send('Invalid file format; expected .tar, .tar.gz or .tgz');
     }
     const gz = parts.indexOf('gz') > 0 || parts.indexOf('tgz') > 0;
+
     try {
+        fs.mkdirSync(outputDir);
         await tar.x({
             file: filePath,
             gzip: gz,
@@ -333,12 +360,90 @@ const installList = async function(req, res) {
         if (lsDir.length == 1) {
             listDir = path.join(outputDir, lsDir[0]);
         }
-        lookupDb.loadDomainsDirectory(listDir);
+        lookupDb.loadDomainsDirectory(listDir).then(() => {
+            console.info('Done loading lists, cleaning up...');
+            cleanUp();
+        }).catch(err => {
+            cleanUp();
+            console.error(`Failed to load lists: ${err.message}`);
+        })
         return res.status(200).send('OK');
     } catch (err) {
+        cleanUp();
         res.status(500).send('Invalid file format');
     }
-    
+}
+
+const generateLists = async function(req, res) {
+
+    const containingDir = fs.mkdtempSync(path.join(os.tmpdir(), 'guardian-angel-genlist'));
+    const listsDir = path.join(containingDir, 'guardian-lists'); // directory to be tarred
+
+    // Resource lock
+    const release = await listGenMutex.acquire();
+    currentState.generating = true;
+
+    function cleanUp() {
+        fs.emptyDirSync(containgingDir);
+        fs.rmdirSync(containingDir);
+        currentState.generating = false;
+        release();
+    }
+
+    console.info('Generating list tar file...');
+    res.status(200).send('OK');
+    try {
+        // If existing list file exists, delete it; we don't need it anymore
+        if (currentState.genFile) {
+            fs.rmSync(currentState.genFile);
+            currentState.genFile = '';
+        }
+        const categories = await lookupDb.listCategories();
+        for (let i = 0; i < categories.length; i++) {
+            const category = categories[i];
+            const categoryDir = path.join(listsDir, ...category.split('/'));
+            const domainsFile = path.join(categoryDir, 'domains');
+            fs.mkdirpSync(categoryDir);
+            const queryTool = await lookupDb.dumpCategoryDomains(category);
+            let batch = await queryTool.next();
+            while (batch.length > 0) {
+                fs.appendFileSync(domainsFile, `${batch.join('\n')}\n`, 'utf-8');
+                batch = await queryTool.next();
+            }
+            // Write the domains file
+            // fs.writeFileSync(domainsFile, domains.join('\n'));
+            console.info(`Created file ${domainsFile}`);
+        }
+        // TODO: tar directory
+        const tarFile = path.join(containingDir, 'guardian-lists.tar.gz');
+        await tar.c({
+            gzip: true,
+            file: tarFile,
+            C: containingDir
+        }, ['guardian-lists']);
+        currentState.genFile = tarFile;
+        currentState.createdAt = Date.now();
+        currentState.generating = false;
+        release();
+        console.info('List generation successful');
+    } catch (err) {
+        console.error(`Failed to generate lists: ${err.message}`);
+        cleanUp();
+        return res.status(500).send('List generation failed');
+    }
+}
+
+const download = function(req, res) {
+    if (currentState.genFile === '') {
+        return res.status(404).send('List file has not been generated');
+    } else {
+        // Send file to client
+        return res.download(currentState.genFile);
+    }
+}
+
+const getListStatus = function(req, res) {
+    return res.status(200).send(currentState);
 }
 
 module.exports.init = init;
@@ -354,4 +459,8 @@ module.exports.addHostEntry = addHostEntry;
 module.exports.deleteHostEntry = deleteHostEntry;
 module.exports.listCategories = listCategories;
 module.exports.deleteCategory = deleteCategory;
+module.exports.getState = getState;
 module.exports.installList = installList;
+module.exports.generateLists = generateLists;
+module.exports.download = download;
+module.exports.getListStatus = getListStatus;
