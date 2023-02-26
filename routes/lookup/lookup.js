@@ -261,63 +261,6 @@ const deleteCategory = async function(req, res) {
     }
 }
 
-const downloadAndInstall = async function(url, destDir, downloadFileName, unpackdir) {
-    if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir);
-    }
-
-    if (fs.existsSync(path.join(destDir, unpackdir))) {
-        // Already downloaded
-        return await lookupDb.loadDomainsDirectory(path.join(destDir, unpackdir));
-    }
-
-    const file = fs.createWriteStream(path.join(destDir, downloadFileName));
-    console.info(`Downloading ${downloadFileName}...`);
-    const downloader = (url.indexOf('https') >= 0) ? https : http;
-
-    const parsedUrl = new URL(url);
-    const options = {
-        host: parsedUrl.host,
-        path: parsedUrl.pathname,
-        family: 4
-    };
-    if (parsedUrl.port) {
-        options.port = parsedUrl.port;
-    }
-
-    await downloader.get(options,
-        function(response) {
-            response.pipe(file);
-            file.on('finish', async function() {
-                file.close();
-                console.info('Download complete.')
-                await tar.x({
-                    file: file.path,
-                    gzip: true,
-                    cwd: destDir
-                });
-                fs.unlinkSync(file.path);
-                bulkSqlLock.take(async function() {
-                    await lookupDb.loadDomainsDirectory(path.join(destDir, unpackdir));
-                    bulkSqlLock.leave();
-                });
-            });
-        });
-}
-
-const installShallaLists = async function(req, res) {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), appPrefix));
-    const destDir = path.join(tmpDir, 'shalla');
-    downloadAndInstall(
-        'https://web.archive.org/web/20210502020725if_/http://www.shallalist.de/Downloads/shallalist.tar.gz',
-        destDir,
-        'shallalist.tar.gz',
-        'BL'
-    );
-
-    res.status(200).send('OK');
-}
-
 const getState = async function() {
     return currentState;
 }
