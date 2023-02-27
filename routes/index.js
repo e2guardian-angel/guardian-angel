@@ -29,10 +29,9 @@ router.post('/api/delhost', auth, lookup.deleteHostEntry);
 router.post('/api/listCategories', auth, lookup.listCategories);
 router.post('/api/deletecategory', auth, lookup.deleteCategory);
 router.get('/api/cleanup', auth, lookup.cleanup);
-//router.get('/api/installshalla', auth, lookup.installShallaLists);
-//router.get('/api/installcapitole', auth, lookup.installCapitoleBlacklists);
 router.post('/api/upload', auth, listState, upload.single('listfile'), lookup.installList);
 router.get('/api/generateLists', auth, listState, lookup.generateLists);
+router.get('/api/getListStatus', auth, lookup.getListStatus);
 router.get('/api/download', auth, listState, lookup.download);
 
 module.exports = router;

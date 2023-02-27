@@ -30,7 +30,8 @@ let currentState = {
     loading: false,
     generating: false,
     genFile: '',
-    createdAt: null
+    createdAt: null,
+    err: ''
 };
 
 /*
@@ -325,6 +326,7 @@ const generateLists = async function(req, res) {
     // Resource lock
     const release = await listGenMutex.acquire();
     currentState.generating = true;
+    currentState.error = '';
 
     function cleanUp() {
         fs.emptyDirSync(containgingDir);
@@ -367,10 +369,12 @@ const generateLists = async function(req, res) {
         currentState.genFile = tarFile;
         currentState.createdAt = Date.now();
         currentState.generating = false;
+        currentState.error = '';
         release();
         console.info('List generation successful');
     } catch (err) {
         console.error(`Failed to generate lists: ${err.message}`);
+        listState.error = err.message
         cleanUp();
         return res.status(500).send('List generation failed');
     }
@@ -386,7 +390,8 @@ const download = function(req, res) {
 }
 
 const getListStatus = function(req, res) {
-    return res.status(200).send(currentState);
+    res.setHeader('Content-type', 'application/json');
+    return res.status(200).send(JSON.stringify(currentState));
 }
 
 module.exports.init = init;
